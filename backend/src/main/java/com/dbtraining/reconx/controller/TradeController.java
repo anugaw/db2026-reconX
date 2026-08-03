@@ -6,6 +6,7 @@ import com.dbtraining.reconx.dto.TradeRequest;
 import com.dbtraining.reconx.dto.TradeResponse;
 import com.dbtraining.reconx.repository.entity.Trade;
 import com.dbtraining.reconx.service.TradeService;
+import com.dbtraining.reconx.sse.TradeSseBroadcaster;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,10 +40,12 @@ public class TradeController {
 
     private final TradeService service;
     private final TradeMapper mapper;
+    private final TradeSseBroadcaster broadcaster;
 
-    public TradeController(TradeService service, TradeMapper mapper) {
+    public TradeController(TradeService service, TradeMapper mapper, TradeSseBroadcaster broadcaster) {
         this.service = service;
         this.mapper = mapper;
+        this.broadcaster = broadcaster;
     }
 
     @GetMapping
@@ -62,8 +65,10 @@ public class TradeController {
     public ResponseEntity<TradeResponse> create(@Valid @RequestBody TradeRequest req,
                                                 @AuthenticationPrincipal String actor) {
         Trade saved = service.create(req, actor);
+        TradeResponse response = mapper.toResponse(saved);
+        broadcaster.broadcast(response);
         URI location = URI.create("/api/v1/trades/" + saved.getId());
-        return ResponseEntity.created(location).body(mapper.toResponse(saved));
+        return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")

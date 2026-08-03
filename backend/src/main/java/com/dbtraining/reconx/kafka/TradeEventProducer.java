@@ -45,6 +45,8 @@ public class TradeEventProducer {
     }
 
     public void publish(TradeEvent event) {
-        throw new UnsupportedOperationException("TICKET-ADV129");
+        // Kafka send wired in TICKET-ADV129 (Day 9). Until then, events are logged only.
+        log.debug("TradeEvent (Kafka not yet wired) eventId={} ref={} type={}",
+                event.eventId(), event.tradeRef(), event.eventType());
     }
 }
